@@ -35,7 +35,7 @@ const cv=document.getElementById('c'),cx=cv.getContext('2d'),bb=document.getElem
 let S=1;
 function rs(){const d=Math.min(devicePixelRatio||1,2),iw=innerWidth,ih=innerHeight;W=cl(Math.round(iw/ih*H),1180,1700);OX=(W-1280)/2;S=Math.min(iw/W,ih/H);hs=cl(.8/S,1,1.6);
 cv.style.width=W*S+'px';cv.style.height=H*S+'px';cv.style.left=(iw-W*S)/2+'px';cv.style.top=(ih-H*S)/2+'px';cv.width=W*S*d;cv.height=H*S*d;cx.setTransform(S*d,0,0,S*d,0,0);
-const por=ih>iw;rot.style.display=por?'flex':'none';if(por&&st=='PLAY')ss('PAUSE');for(const q of stars)if(q.x>W)q.x=R()*W}
+const por=ih>iw;rot.style.display=por?'flex':'none';if(por&&(st=='PLAY'||st=='COUNT'))ss('PAUSE');for(const q of stars)if(q.x>W)q.x=R()*W}
 addEventListener('resize',rs);addEventListener('orientationchange',()=>setTimeout(rs,250));document.addEventListener('fullscreenchange',()=>setTimeout(rs,100));
 // ===== STORAGE =====
 let SV={hi:0,stage:1,q:2,shake:1,snd:1,auto:0,diff:1};
@@ -53,8 +53,9 @@ sHit=()=>snd(300,.05,'square',.03,.6),sWarn=()=>{snd(220,.5,'sawtooth',.08,1.4);
 let st='MENU',stage=1,wave=0,wt=0,Q=[],E=[],B=[],PU=[],PA=[],TX=[],boss=null,p,shk=0,flash=0,ts=1,banner=null,bw=0,clr=0,btns=[],ups=[],rapid=0,
 mx=640,my=360,mouseMode=false,down=false,touchOK=false,beat=0,fps=60,fpsT=0,fpsN=0,tm=0;
 const keys={};
-function ss(s){st=s;const v=(s=='PLAY'&&touchOK)?'block':'none';bb.style.display=pbn.style.display=rkb.style.display=lzb.style.display=v}
-function newGame(s){p={x:150,y:360,hp:100,mh:100,sh:50,ms:50,wl:1,sc:0,cb:0,cbt:0,inv:0,cd:0,bomb:DF().bm,rk:DF().bm>2?2:1,ml:1,lzT:0,flT:0,twT:0,mlT:0,wx:150,wy:420,dm:1,fr:1,sp:1,shT:0,nd:true};stage=s;startStage()}
+let cd3=0,cdN=9;function cnt(){ss('COUNT');cd3=3.5;cdN=9}
+function ss(s){st=s;const v=((s=='PLAY'||s=='COUNT')&&touchOK)?'block':'none';bb.style.display=pbn.style.display=rkb.style.display=lzb.style.display=v}
+function newGame(s){p={x:150,y:360,hp:100,mh:100,sh:50,ms:50,wl:1,sc:0,cb:0,cbt:0,inv:0,cd:0,bomb:DF().bm,rk:DF().bm>2?2:1,ml:1,lzT:0,flT:0,twT:0,mlT:0,wx:150,wy:420,dm:1,fr:1,sp:1,shT:0,nd:true};stage=s;startStage();cnt()}
 function startStage(){wave=0;Q=[];E=[];B=[];PU=[];boss=null;bw=0;wt=2.5;banner={t:2.5,a:'STAGE '+stage,b:NAMES[stage-1]+' — HOSTILE FLEET DETECTED'};ss('PLAY');p.x=150;p.y=360}
 function dif(){const d=DF();return{hp:(1+(stage-1)*.18+wave*.04)*d.hp,sp:(1+(stage-1)*.04)*d.sp,fr:(1+(stage-1)*.05)*d.fr,pj:(1+(stage-1)*.03)*d.pj}}
 // ===== UTIL =====
@@ -65,7 +66,7 @@ function txt(x,y,s,c){TX.push({x,y,s,c:c||'#fff',l:1})}
 // ===== INPUT =====
 function fs(){try{if(!document.fullscreenElement)document.documentElement.requestFullscreen().then(()=>screen.orientation.lock('landscape')).catch(()=>{});else document.exitFullscreen()}catch(e){}}
 addEventListener('keydown',e=>{ac();keys[e.code]=1;if(e.code=='Space'||e.code.startsWith('Arrow'))e.preventDefault();
-if(e.code=='Escape'||e.code=='KeyP'){if(st=='PLAY')ss('PAUSE');else if(st=='PAUSE')ss('PLAY')}
+if(e.code=='Escape'||e.code=='KeyP'){if(st=='PLAY'||st=='COUNT')ss('PAUSE');else if(st=='PAUSE')cnt()}
 if(e.code=='KeyX')bomb();if(e.code=='KeyC')rocket();if(e.code=='KeyV')mega();if(e.code=='KeyF')fs();
 if(st=='UPGRADE'&&/^Digit[123]$/.test(e.code)&&ups[+e.code[5]-1])pickUp(ups[+e.code[5]-1])});
 addEventListener('keyup',e=>keys[e.code]=0);
@@ -178,11 +179,12 @@ b.sm+=(b.hp-b.sm)*Math.min(1,dt*6);b.cd-=dt;b.wn=b.cd<.5&&b.x<=1000;if(b.cd<=0){
 if(b.hp<=0){b.dying=2.5;b.hp=0;B=B.filter(q=>!q.o)}}
 // ===== UPDATE =====
 function update(dt){
-tm+=dt;if(banner){banner.t-=dt;if(banner.t<=0)banner=null}
+tm+=dt;if(banner&&st!='COUNT'){banner.t-=dt;if(banner.t<=0)banner=null}
 shk=Math.max(0,shk-shk*5*dt-10*dt);flash=Math.max(0,flash-dt);ts+=(1-ts)*Math.min(1,dt*1.5);
 for(let i=PA.length-1;i>=0;i--){const q=PA[i];q.x+=q.vx*dt;q.y+=q.vy*dt;q.l-=dt;if(q.l<=0){PA[i]=PA[PA.length-1];PA.pop()}}
 for(let i=TX.length-1;i>=0;i--){const q=TX[i];q.y-=40*dt;q.l-=dt;if(q.l<=0)TX.splice(i,1)}
 if(st=='CLEAR'){clr-=dt;if(clr<=0){if(stage>=CFG.STAGES){SV.hi=Math.max(SV.hi,p.sc);saveGame();ss('WIN')}else{ups=UPS.slice().sort(()=>R()-.5).slice(0,3);ss('UPGRADE')}}return}
+if(st=='COUNT'){cd3-=dt;const n=Math.ceil(cd3-.5);if(n!=cdN){cdN=n;snd(n>0?500:900,.18,'triangle',.08)}if(cd3<=0)ss('PLAY');return}
 if(st!='PLAY')return;
 beat-=dt;if(beat<=0){beat=.5;snd(55,.25,'sawtooth',.03)}
 // player move
@@ -312,7 +314,9 @@ else{drawWorld();if(p)drawHUD();
 if(flash>0){cx.fillStyle=`rgba(255,255,255,${flash})`;cx.fillRect(0,0,W,H)}
 if(bw>0){cx.fillStyle='rgba(120,0,0,.35)';cx.fillRect(0,0,W,H);if(((tm*4)|0)%2){ctr('⚠ WARNING ⚠',270,64,'#f55');ctr('HOSTILE SIGNATURE DETECTED',335,26,'#fa4');ctr('BOSS APPROACHING: '+BOSSES[stage-1].n,375,22,'#fff')}}
 if(banner&&banner.t>0){cx.globalAlpha=cl(Math.min(banner.t,1),0,1);ctr(banner.a,300,56,'#8ef');if(banner.b)ctr(banner.b,360,22,'#fff');cx.globalAlpha=1}
-if(st=='PAUSE'){cx.fillStyle='#000a';cx.fillRect(0,0,W,H);ctr('GAME PAUSED',220,56);btn('RESUME',490,300,300,50,()=>ss('PLAY'));btn('RESTART',490,364,300,50,()=>newGame(1));btn('MAIN MENU',490,428,300,50,()=>ss('MENU'))}
+if(st=='COUNT'){const n=Math.ceil(cd3-.5),fr=((cd3-.5)%1+1)%1;cx.fillStyle='rgba(0,0,0,.35)';cx.fillRect(0,0,W,H);cx.globalAlpha=n>0?.35+.65*fr:1;
+ctr('BERSIAP!',410,26,'#fd4');ctr(n>0?String(n):'GO!',500,n>0?110+70*fr:150,n>0?'#8ef':'#6f8');cx.globalAlpha=1}
+if(st=='PAUSE'){cx.fillStyle='#000a';cx.fillRect(0,0,W,H);ctr('GAME PAUSED',220,56);btn('RESUME',490,300,300,50,cnt);btn('RESTART',490,364,300,50,()=>newGame(1));btn('MAIN MENU',490,428,300,50,()=>ss('MENU'))}
 if(st=='UPGRADE'){cx.fillStyle='#000b';cx.fillRect(0,0,W,H);ctr('CHOOSE UPGRADE',150,48,'#8ef');ups.forEach((u,i)=>btn((i+1)+'.  '+u.t,380,250+i*90,520,70,()=>pickUp(u)))}
 if(st=='OVER'){cx.fillStyle='#000b';cx.fillRect(0,0,W,H);ctr('GAME OVER',210,70,'#f55');ctr('SCORE '+p.sc,300,34);ctr('HIGH SCORE '+SV.hi,345,24,'#fd4');
 btn('RESTART',490,410,300,50,()=>newGame(1));btn('MAIN MENU',490,474,300,50,()=>ss('MENU'))}
